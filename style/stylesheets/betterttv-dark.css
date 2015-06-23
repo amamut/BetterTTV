@@ -364,7 +364,6 @@ body {
     opacity: .5;
     border: 1px solid;
     border-color: rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.55);
-    background-image: url(../icons/arrow_collapse.png) !important;
     box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 0px 1px;
     background-color: rgb(50, 50, 50);
     box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.05), 0px 1px 0px rgba(0, 0, 0, 0.15) inset;
@@ -533,7 +532,8 @@ body {
 
 #channel .channel-actions .button.drop:after,
 #channel_actions .button.drop:after,
-.profile-info .buttons .button.drop:after {
+.profile-info .buttons .button.drop:after,
+#channel .channel-actions .notification-controls .toggle-notification-menu:before {
     border-top-color: #777;
     margin-right: 5px;
 }
@@ -571,6 +571,12 @@ body {
     -moz-box-shadow: inset 0 0px 0px rgba(0,0,0,0.1),inset 0 0 0px rgba(0,0,0,0.05),0 0px 0 rgba(255,255,255,0.65);
     -webkit-box-shadow: inset 0 0px 0px rgba(0,0,0,0.1),inset 0 0 0px rgba(0,0,0,0.05),0 0px 0 rgba(255,255,255,0.65);
     background: #3b3b3b;
+}
+
+/* follow button for the fifth time*/
+#channel .channel-actions .notification-controls .toggle-notification-menu {
+    background-color: rgb(30,30,30);
+    color: #d3d3d3;
 }
 
 /* Ember Pages Dropmenu Fix */
@@ -629,10 +635,6 @@ body {
     box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.05), 0px 1px 0px rgba(0, 0, 0, 0.15) inset !important;
     color: rgb(170, 170, 170) !important;
     text-shadow: rgba(0, 0, 0, 0.5) 0px 1px 0px !important;
-}
-
-.follow-button.following .follow {
-
 }
 
 .follow-button.following .notify:before {
@@ -1039,17 +1041,6 @@ body {
 
 #bttvTranscodes a {
     color: #fff;
-}
-
-#controls #control_buttons .emoticon-selector-container .emoticon-selector.not-subscribed #non-subscriber-message {
-    color: #D3D3D3;
-}
-
-#controls #control_buttons .emoticon-selector-container .emoticon-selector .emoticon-selector-inner, #controls #control_buttons .emoticon-selector-container .emoticon-selector .emoticon-selector-inner {
-    background: rgb(20, 20, 20) !important;
-    box-shadow: none;
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
 }
 
 /* New Messages Page */
@@ -1644,6 +1635,14 @@ table.simple_table td {
     color: #d3d3d3;
 }
 
+.upsell-banner {
+    background-color: #222;
+}
+
+.upsell-banner .message .title {
+    color: #999;
+}
+
 /* darken link list popup */
 #flyout .content {
     background-color: rgb(35,35,35);
@@ -1759,6 +1758,7 @@ table.simple_table td {
     background-color: rgb(50,50,50);
     border-top: 1px solid #000;
     border-bottom: 1px solid #000;
+    box-shadow: none;
 }
 .ember-chat .chat-header.all-rooms-header {
     background-color: rgb(50,50,50);
@@ -1899,11 +1899,6 @@ span#is-subscribed {
     fill: #D3D3D3 !important;
 }
 
-.ember-chat .chat-interface .emoticon-selector .subscribe-message {
-    padding: 5px;
-    margin: 0px;
-}
-
 .ember-chat .chat-interface .suggestions {
     background-color: #323232;
 }
@@ -2001,3 +1996,44 @@ span.subscribe-text {
 .whatisthis .actions a {
     color: #999;
 }
+
+/* Twitch emote menu */
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box {
+    background-color: rgb(25,25,25);
+}
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box .emotes .emoticon-grid .emote-set {
+    border-color: #444;
+}
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box .tabs {
+    border-color: #444;
+    color: #d3d3d3;
+}
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box .tabs .tab.active {
+    border-color: #888;
+    color: #aaa;
+}
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box .tabs .tab:hover {
+    border-color: #888;
+}
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box .channel-emotes .subscribe-message {
+    border-color: #444;
+    color: #aaa;
+    margin: 0px;
+    padding: 5px 15px;
+    background-color: rgb(25,25,25);
+}
+
+/* dark whispers (lenny face) */
+.chat-messages .chat-line.whisper {
+    background-color: #352645 !important; /* blue: #202236 */
+}
+.chat-messages .chat-line .svg-whisper-arrow {
+    fill: #D3D3D3;
+}
+

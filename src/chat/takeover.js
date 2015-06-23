@@ -14,11 +14,6 @@ var takeover = module.exports = function() {
 
     if(store.isLoaded) return;
 
-    if(bttv.socketServer) {
-        if(bttv.getChannel()) helpers.lookupDisplayName(bttv.getChannel());
-        if(vars.userData.isLoggedIn) helpers.lookupDisplayName(vars.userData.login);
-    }
-
     // Hides Group List if coming from directory
     bttv.getChatController().set("showList", false);
 
@@ -57,6 +52,7 @@ var takeover = module.exports = function() {
         if(tmi.tmiSession._rooms.hasOwnProperty(channel)) {
             delete tmi.tmiSession._rooms[channel]._events['message'];
             delete tmi.tmiSession._rooms[channel]._events['clearchat'];
+            delete tmi.tmiSession._rooms[channel]._events['notice'];
         }
     }
 
@@ -64,7 +60,8 @@ var takeover = module.exports = function() {
     rooms.newRoom(bttv.getChannel());
     tmi.tmiRoom.on('message', rooms.getRoom(bttv.getChannel()).chatHandler);
     tmi.tmiRoom.on('clearchat', handlers.clearChat);
-    tmi.set('name', helpers.lookupDisplayName(bttv.getChannel()));
+    tmi.tmiRoom.on('notice', handlers.notice);
+    if(tmi.channel) tmi.set('name', tmi.channel.get('display_name'));
     store.currentRoom = bttv.getChannel();
     //tmi.tmiRoom.on('labelschanged', handlers.labelsChanged);
 
@@ -87,6 +84,7 @@ var takeover = module.exports = function() {
         if(store.bttvEmotes[emote].id.toString().charAt(0) !== 'c') continue;
         delete store.bttvEmotes[emote];
     }
+    store.__channelBots = [];
     $.getJSON("https://api.betterttv.net/2/channels/"+bttv.getChannel()).done(function(data) {
         data.emotes.forEach(function(emote) {
             emote.channelEmote = true;
@@ -94,7 +92,11 @@ var takeover = module.exports = function() {
             emote.url = emote.urlTemplate.replace('{{image}}', '1x');
             store.bttvEmotes[emote.code] = emote;
         });
+        store.__channelBots = data.bots;
     });
+
+    // Load Volunteer Badges
+    helpers.loadBadges();
 
     // Load Chat Settings
     loadChatSettings();
@@ -146,7 +148,8 @@ var takeover = module.exports = function() {
 
     // Make names clickable
     $("body").off("click", ".chat-line .from").on("click", ".chat-line .from", function() {
-        handlers.moderationCard($(this).parent().data('sender')+"", $(this));
+        var sender = $(this).data('sender') || $(this).parent().data('sender');
+        handlers.moderationCard(sender + "", $(this));
     });
 
     // Give some tips to Twitch Emotes
@@ -155,7 +158,7 @@ var takeover = module.exports = function() {
             var emote = tmi.product.emoticons[i];
 
             if(emote.state && emote.state === "active" && !bttv.TwitchEmoteSets[emote.emoticon_set]) {
-                bttv.socketServer.emit('give_tip', { channel: bttv.getChannel(), user: (vars.userData.isLoggedIn ? vars.userData.login : 'guest') });
+                bttv.io.giveEmoteTip(bttv.getChannel());
                 break;
             }
         }
@@ -183,8 +186,8 @@ var takeover = module.exports = function() {
     $chatInput.on('keyup', function(e) {
         // '@' completion is captured only on keyup
         if(e.which === keyCodes.Tab || e.which === keyCodes.Shift) return;
-
         helpers.tabCompletion(e);
+        helpers.whisperReply(e);
     });
 
     // Implement our own text senders (+ commands & legacy tab completion)
@@ -233,7 +236,7 @@ var takeover = module.exports = function() {
         }
 
         // Actual tabs must be captured on keydown
-        if(e.which === keyCodes.Tab && !e.ctrlKey) {
+        if((e.which === keyCodes.Tab && !e.ctrlKey) || /^(\/|.)w $/.test(val)) {
             helpers.tabCompletion(e);
             e.preventDefault();
         }
@@ -264,17 +267,42 @@ var takeover = module.exports = function() {
     });
 
     $('.ember-chat .chat-messages .chat-line').remove();
-    if(bttv.socketServer) bttv.socketServer.emit('chat history');
-    helpers.serverMessage('<center><small>BetterTTV v' + bttv.info.version + ' Loaded.</small></center>');
-    helpers.serverMessage('Welcome to '+helpers.lookupDisplayName(bttv.getChannel())+'\'s chat room!', true);
+    bttv.io.chatHistory(function(history) {
+        if(history.length) {
+            history.forEach(function(message) {
+                var badges = [];
+                if(message.user.name === message.channel.name) badges.push("owner");
+
+                if(bttv.chat.helpers.isIgnored(message.user.name)) return;
+
+                message = bttv.chat.templates.privmsg(false, false, false, false, {
+                    message: message.message,
+                    time: (new Date(message.date.replace("T", " ").replace(/\.[0-9]+Z/, " GMT"))).toLocaleTimeString().replace(/^(\d{0,2}):(\d{0,2}):(.*)$/i, "$1:$2"),
+                    nickname: message.user.name,
+                    sender: message.user.name,
+                    badges: bttv.chat.helpers.assignBadges(badges),
+                    color: bttv.chat.helpers.calculateColor(message.user.color),
+                    emotes: message.parsedEmotes
+                });
+
+                $(".ember-chat .chat-messages .tse-content .chat-lines").append(message);
+            });
+        }
+
+        helpers.serverMessage('<center><small>BetterTTV v' + bttv.info.version + ' Loaded.</small></center>');
+        helpers.serverMessage('Welcome to '+helpers.lookupDisplayName(bttv.getChannel())+'\'s chat room!', true);
+
+        bttv.chat.helpers.scrollChat();
+    });
+
+    bttv.io.joinChannel();
 
     // Reset chatters list
     store.chatters = {};
-    store.chatters[bttv.getChannel()] = true;
+    store.chatters[bttv.getChannel()] = {lastWhisper: 0};
 
     // When messages come in too fast, things get laggy
     if(!store.__messageTimer) store.__messageTimer = setInterval(handlers.shiftQueue, 500);
-    if(!store.__lookupUsernameTimer) store.__lookupUsernameTimer = setInterval(function() { store.__usersBeingLookedUp = 0; }, 1000);
 
     // Active Tab monitoring - Useful for knowing if a user is "watching" chat
     $(window).off("blur focus").on("blur focus", function(e) {
@@ -286,6 +314,7 @@ var takeover = module.exports = function() {
                     store.activeView = false;
                     break;
                 case "focus":
+                    $('.chat-interface textarea').focus();
                     store.activeView = true;
                     break;
             }
@@ -318,6 +347,13 @@ var takeover = module.exports = function() {
                     break;
                 case keyCodes.i:
                     helpers.sendMessage("/ignore "+user);
+                    $('.bttv-mod-card').remove();
+                    break;
+                case keyCodes.w:
+                    e.preventDefault();
+                    var $chatInput = $('.ember-chat .chat-interface').find('textarea');
+                    $chatInput.val('/w ' + user + ' ');
+                    $chatInput.focus();
                     $('.bttv-mod-card').remove();
                     break;
             }

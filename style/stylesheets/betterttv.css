@@ -61,7 +61,7 @@ ul.tabs li.selected a {
 
 .ember-chat .chat-messages {
     top: 0px;
-    bottom: 115px;
+    bottom: 114px;
     background-color: #f2f2f2; /* hide group chat feature depends on having a background */
 }
 
@@ -197,29 +197,23 @@ input.text:focus,select:focus,textarea:focus {
 }
 
 .line .bttvDeveloper, .ember-chat .badges .bttvDeveloper {
-    background: url(../../tags/developer.png) no-repeat;
-    padding-left: 12px !important;
-    border-radius: 2px 2px 2px 2px;
-    padding: 2px 3px;
-    font-weight: bold;
-    font-size: 0.8572em;
-    color: white;
-    display: inline !important;
+    background: url("../../tags/badge-dev.svg");
+    background-size: 100%;
 }
 
+/* red badge on red highlight = :( */
 .ember-chat .chat-line.highlight .badges .bttvDeveloper {
-    filter: brightness(1.35);
+    filter: brightness(1.4);
 }
 
 .line .bttvSupporter, .ember-chat .badges .bttvSupporter {
-    background: url(../../tags/supporter.png) no-repeat;
-    padding-left: 12px !important;
-    border-radius: 2px 2px 2px 2px;
-    padding: 2px 3px;
-    font-weight: bold;
-    font-size: 0.8572em;
-    color: white;
-    display: inline !important;
+    background: url("../../tags/badge-support.svg");
+    background-size: 100%;
+}
+
+.line .bttvApprover, .ember-chat .badges .bttvApprover {
+    background: url("../../tags/badge-approver.svg");
+    background-size: 100%;
 }
 
 .line .brown, .ember-chat .badges .brown {
@@ -1135,6 +1129,12 @@ body#chat #speak {
     margin-left: 8px;
 }
 
+/* more-messages-indicator is not full width */
+.ember-chat .chat-interface .more-messages-indicator {
+    left: 0px;
+    right: 0px;
+}
+
 .ember-chat .chat-header {
     right: 0px;
     left: 0px;
@@ -1362,7 +1362,7 @@ body.channel_new.columns.ember-application {
 }
 
 /* tehMorag's emote */
-@keyframes "ttv-emo-6633" {
+@keyframes morag-spin {
     from {
         -webkit-transform: rotate(0);
         -moz-transform: rotate(0);
@@ -1380,7 +1380,7 @@ body.channel_new.columns.ember-application {
     };
 }
 
-@-moz-keyframes "ttv-emo-6633" {
+@-moz-keyframes morag-spin {
     from {
         -moz-transform: rotate(0);
         transform: rotate(0);
@@ -1392,7 +1392,7 @@ body.channel_new.columns.ember-application {
     };
 }
 
-@-webkit-keyframes "ttv-emo-6633" {
+@-webkit-keyframes morag-spin {
     from {
         -webkit-transform: rotate(0);
         transform: rotate(0);
@@ -1404,7 +1404,7 @@ body.channel_new.columns.ember-application {
     };
 }
 
-@-ms-keyframes "ttv-emo-6633" {
+@-ms-keyframes morag-spin {
     from {
         -ms-transform: rotate(0);
         transform: rotate(0);
@@ -1416,7 +1416,7 @@ body.channel_new.columns.ember-application {
     };
 }
 
-@-o-keyframes "ttv-emo-6633" {
+@-o-keyframes morag-spin {
     from {
         -o-transform: rotate(0);
         transform: rotate(0);
@@ -1429,11 +1429,11 @@ body.channel_new.columns.ember-application {
 }
 
 .ttv-emo-6633 {
-    -webkit-animation: ttv-emo-6633 1.5s linear infinite;
-    -moz-animation: ttv-emo-6633 1.5s linear infinite;
-    -ms-animation: ttv-emo-6633 1.5s linear infinite;
-    -o-animation: ttv-emo-6633 1.5s linear infinite;
-    animation: ttv-emo-6633 1.5s linear infinite;
+    -webkit-animation: morag-spin 1.5s linear infinite;
+    -moz-animation: morag-spin 1.5s linear infinite;
+    -ms-animation: morag-spin 1.5s linear infinite;
+    -o-animation: morag-spin 1.5s linear infinite;
+    animation: morag-spin 1.5s linear infinite;
 }
 
 /* Notification Container above chat */
@@ -1443,8 +1443,20 @@ body.channel_new.columns.ember-application {
 }
 
 /* mod card user locater */
-.chat-line.bttv-user-locate .from,
-.chat-line.bttv-user-locate .colon {
+.chat-line.bttv-user-locate .from {
     box-shadow: 0px 2px 0px 0px #f00;
 }
 
+/* dropmenu margin fix */
+.stats-and-actions .channel-actions .dropmenu,
+.chat-interface .dropmenu {
+    margin-bottom: 5px;
+}
+
+/* whispers */
+.chat-messages .chat-line.whisper {
+    background-color: #E8D6FF !important;
+}
+.chat-messages .chat-line .svg-whisper-arrow {
+    fill: #32323e;
+}

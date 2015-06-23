@@ -1,11 +1,11 @@
 var vars = require('../vars'),
-    debug = require('../helpers/debug');
-var store = require('./store'),
+    debug = require('../helpers/debug'),
+    store = require('./store'),
     tmi = require('./tmi'),
-    helpers = require('./helpers')
+    helpers = require('./helpers'),
     templates = require('./templates'),
-    rooms = require('./rooms');
-var embeddedPolling = require('../features/embedded-polling');
+    rooms = require('./rooms'),
+    embeddedPolling = require('../features/embedded-polling');
 
 // Helper Functions
 var getEmoteFromRegEx = require('../helpers/regex').getEmoteFromRegEx;
@@ -28,6 +28,8 @@ var commands = exports.commands = function (input) {
         helpers.massUnban();
     } else if (command === "/u") {
         helpers.unban(sentence[1]);
+    } else if (command === '/w' && bttv.settings.get('disableWhispers') === true) {
+        helpers.serverMessage('You have disabled whispers in BetterTTV settings');
     } else if (command === "/sub") {
         tmi().tmiRoom.startSubscribersMode();
     } else if (command === "/suboff") {
@@ -38,6 +40,12 @@ var commands = exports.commands = function (input) {
     } else if (command === "/localsuboff") {
         helpers.serverMessage("Local subscribers-only mode disabled.", true);
         vars.localSubsOnly = false;
+    } else if (command === "/localmod") {
+        helpers.serverMessage("Local moderators-only mode enabled.", true);
+        vars.localModsOnly = true;
+    } else if (command === "/localmodoff") {
+        helpers.serverMessage("Local moderators-only mode disabled.", true);
+        vars.localModsOnly = false;
     } else if (command === "/viewers") {
         bttv.TwitchAPI.get('streams/' + bttv.getChannel()).done(function(stream) {
             helpers.serverMessage("Current Viewers: " + Twitch.display.commatize(stream.stream.viewers), true);
@@ -57,20 +65,19 @@ var commands = exports.commands = function (input) {
             bttv.settings.save('chatLineHistory', true);
         }
     } else if (command === "/uptime") {
-        bttv.TwitchAPI.get('streams/' + bttv.getChannel()).done(function (stream) {
+        bttv.TwitchAPI.get('streams/' + bttv.getChannel()).done(function(stream) {
             if (stream.stream !== null) {
-                var started = new Date(stream.stream.created_at),
-                    now = new Date(),
-                    timeDiff = Math.abs(now.getTime() - (started.getTime() - 1000 * 60 * started.getTimezoneOffset())),
-                    days = Math.floor(timeDiff / (1000 * 3600 * 24)),
-                    hours = Math.floor(timeDiff / (1000 * 3600)) - (days * 24),
-                    minutes = Math.floor(timeDiff / (1000 * 60)) - ((days * 24) + (hours * 60)),
-                    seconds = Math.floor(timeDiff / 1000) - ((days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60));
+                var startedTime = new Date(stream.stream.created_at),
+                    totalUptime = Math.round(Math.abs((Date.now() - (startedTime.getTime() - (startedTime.getTimezoneOffset() * 60 * 1000))) / 1000)),
+                    days = Math.floor(totalUptime / 86400),
+                    hours = Math.floor(totalUptime / 3600) - (days * 24),
+                    minutes = Math.floor(totalUptime / 60) - (days * 1440) - (hours * 60),
+                    seconds = totalUptime - (days * 86400) - (hours * 3600) - (minutes * 60);
                 helpers.serverMessage("Stream uptime: " +
-                    (days > 0 ? days + " days " : "") +
-                    (hours > 0 ? hours + " hours " : "") +
-                    (minutes > 0 ? minutes + " minutes " : "") +
-                    (seconds > 0 ? seconds + " seconds " : ""),
+                    (days > 0 ? days + " day"+(days===1?"":"s")+", " : "") +
+                    (hours > 0 ? hours + " hour"+(hours===1?"":"s")+", " : "") +
+                    (minutes > 0 ? minutes + " minute"+(minutes===1?"":"s")+", " : "") +
+                    seconds + " second"+(seconds===1?"":"s"),
                     true
                 );
             } else {
@@ -79,6 +86,25 @@ var commands = exports.commands = function (input) {
         }).fail(function () {
             helpers.serverMessage("Could not fetch start time.", true);
         });
+    } else if (command === '/help') {
+        helpers.serverMessage("BetterTTV Chat Commands:");
+        helpers.serverMessage("/b [username] -- Shortcut for /ban");
+        helpers.serverMessage("/followers -- Retrieves the number of followers for the channel");
+        helpers.serverMessage("/linehistory on/off -- Toggles the chat field history (pressing up/down arrow in textbox)");
+        helpers.serverMessage("/localmod -- Turns on local mod-only mode (only your chat is mod-only mode)");
+        helpers.serverMessage("/localmodoff -- Turns off local mod-only mode");
+        helpers.serverMessage("/localsub -- Turns on local sub-only mode (only your chat is sub-only mode)");
+        helpers.serverMessage("/localsuboff -- Turns off local sub-only mode");
+        helpers.serverMessage("/massunban (or /unban all or /u all) -- Unbans all users in the channel (channel owner only)");
+        helpers.serverMessage("/r -- Type '/r ' to respond to your last whisper");
+        helpers.serverMessage("/sub -- Shortcut for /subscribers");
+        helpers.serverMessage("/suboff -- Shortcut for /subscribersoff");
+        helpers.serverMessage("/t [username] [time in seconds] -- Shortcut for /timeout");
+        helpers.serverMessage("/u [username] -- Shortcut for /unban");
+        helpers.serverMessage("/uptime -- Retrieves the amount of time the channel has been live");
+        helpers.serverMessage("/viewers -- Retrieves the number of viewers watching the channel");
+        helpers.serverMessage("Native Chat Commands:");
+        return false;
     } else {
         return false;
     }
@@ -148,6 +174,10 @@ var labelsChanged = exports.labelsChanged = function (user) {
 var clearChat = exports.clearChat = function (user) {
     var trackTimeouts = store.trackTimeouts;
 
+    // Remove chat image preview if it exists.
+    // We really shouldn't have to place this here, but since we don't emit events...
+    $("#chat_preview").remove();
+
     if(!user) {
         helpers.serverMessage("Chat was cleared by a moderator (Prevented by BetterTTV)", true);
     } else {
@@ -199,6 +229,12 @@ var clearChat = exports.clearChat = function (user) {
         }
     }
 };
+var notice = exports.notice = function (data) {
+    var messageId = data.msgId;
+    var message = data.message;
+
+    helpers.serverMessage(message, true);
+};
 var onPrivmsg = exports.onPrivmsg = function (channel, data) {
     if(!rooms.getRoom(channel).active() && data.from && data.from !== 'jtv') {
         rooms.getRoom(channel).queueMessage(data);
@@ -207,6 +243,10 @@ var onPrivmsg = exports.onPrivmsg = function (channel, data) {
     if(!data.message.length) return;
     if(!tmi() || !tmi().tmiRoom) return;
     try {
+        if (data.style === 'whisper') {
+            store.chatters[data.from] = {lastWhisper:Date.now()};
+            if (bttv.settings.get('disableWhispers') === true) return;
+        }
         privmsg(channel, data);
     } catch(e) {
         if(store.__reportedErrors.indexOf(e.message) !== -1) return;
@@ -216,12 +256,17 @@ var onPrivmsg = exports.onPrivmsg = function (channel, data) {
             stack: e.stack,
             message: e.message
         };
-        $.get('//nightdev.com/betterttv/errors/?obj='+encodeURIComponent(JSON.stringify(error)));
+        $.get('https://nightdev.com/betterttv/errors/?obj='+encodeURIComponent(JSON.stringify(error)));
         helpers.serverMessage('BetterTTV encountered an error reading chat. The developer has been sent a log of this action. Please try clearing your cookies and cache.');
     }
 };
 var privmsg = exports.privmsg = function (channel, data) {
-    if(data.style && (data.style !== 'admin' && data.style !== 'action' && data.style !== 'notification')) return;
+    // Store display names
+    if(data.tags && data.tags['display-name']) {
+        store.displayNames[data.from] = data.tags['display-name'];
+    }
+
+    if(data.style && ['admin','action','notification','whisper'].indexOf(data.style) === -1) return;
 
     if(data.style === 'admin' || data.style === 'notification') {
         data.style = 'admin';
@@ -235,11 +280,11 @@ var privmsg = exports.privmsg = function (channel, data) {
                 time: data.date == null ? '' : data.date.toLocaleTimeString().replace(/^(\d{0,2}):(\d{0,2}):(.*)$/i, '$1:$2'),
                 nickname: data.from || 'jtv',
                 sender: data.from,
-                badges: data.badges || (data.from==='twitchnotify'?[{
+                badges: data.badges || (data.from === 'twitchnotify' ? [{
                     type: 'subscriber',
                     name: '',
                     description: 'Channel Subscriber'
-                }]:[]),
+                }] : []),
                 color: '#555'
             }
         );
@@ -249,12 +294,12 @@ var privmsg = exports.privmsg = function (channel, data) {
         return;
     }
 
-    if(!store.chatters[data.from]) store.chatters[data.from] = true;
+    if(!store.chatters[data.from]) store.chatters[data.from] = {lastWhisper: 0};
 
     if(vars.localSubsOnly && !helpers.isModerator(data.from) && !helpers.isSubscriber(data.from)) return;
+    if(vars.localModsOnly && !helpers.isModerator(data.from)) return;
 
     if(store.trackTimeouts[data.from]) delete store.trackTimeouts[data.from];
-
 
     var blacklistFilter = require('../features/keywords-lists').blacklistFilter,
         highlighting = require('../features/keywords-lists').highlighting;
@@ -265,32 +310,14 @@ var privmsg = exports.privmsg = function (channel, data) {
 
     var messageHighlighted = bttv.settings.get("highlightKeywords") && highlighting(data);
 
-    if(bttv.settings.get('embeddedPolling')) {
-        if(helpers.isOwner(data.from)) {
-            var strawpoll = /strawpoll\.me\/([0-9]+)/g.exec(data.message);
-            if(strawpoll) {
-                embeddedPolling(strawpoll[1]);
-            }
-        }
-    }
-
-    //Bots
-    var bots = require('../bots');
-    if(bots.indexOf(data.from) !== -1 && helpers.isModerator(data.from)) { data.bttvTagType="bot"; data.bttvTagName = "Bot"; }
-
-    if (bttv.settings.get("showJTVTags") === true) {
-        if (data.bttvTagType == "moderator" || data.bttvTagType == "broadcaster" || data.bttvTagType == "admin" || data.bttvTagType == "global_mod" || data.bttvTagType == "staff" || data.bttvTagType === "bot") data.bttvTagType = 'old'+data.bttvTagType;
-    }
+    // Strawpoll
+    embeddedPolling(data);
 
     data.color = helpers.getColor(data.from);
 
-    if(data.color === "black") data.color = "#000000";
-    if(data.color === "MidnightBlue") data.color = "#191971";
-    if(data.color === "DarkRed") data.color = "#8B0000";
-
     data.color = helpers.calculateColor(data.color);
 
-    if (bttv.glow && bttv.glow[data.from] && data.style !== 'action') {
+    if (helpers.hasGlow(data.from) && data.style !== 'action') {
         var rgbColor = (data.color === "#ffffff" ? getRgb("#000000") : getRgb(data.color));
         if(bttv.settings.get("darkenedMode") === true) data.color = data.color+"; text-shadow: 0 0 20px rgba("+rgbColor.r+","+rgbColor.g+","+rgbColor.b+",0.8)";
     }
@@ -299,40 +326,8 @@ var privmsg = exports.privmsg = function (channel, data) {
         data.color = "#ffffff";
     }
 
-    var specialUsers = {
-        "night": { dev: true, tagType: "bttvDeveloper" },
-        "dtittel": { dev: true, tagType: "bttvDeveloper" },
-        "vendethiel": { dev: true, tagType: "bttvDeveloper" },
-        "teak42": { dev: true, tagType: "bttvDeveloper" },
-        "matthewjk": { supporter: true, team: "Support", tagType: "bttvSupporter" },
-        "julia_cs": { supporter: true, team: "Design", tagType: "bttvSupporter" },
-        "vaughnwhiskey": { supporter: true, team: "Support", tagType: "bttvSupporter" },
-        "izl": { supporter: true, team: "Support", tagType: "bttvSupporter" },
-        "jacksack": { supporter: true, team: "Design", tagType: "bttvSupporter" }
-    }
-
-    var legacyTags = require('../legacy-tags')(data);
-
-    if(legacyTags[data.from] && ((legacyTags[data.from].mod === true && helpers.isModerator(data.from)) || legacyTags[data.from].mod === false)) {
-        var userData = legacyTags[data.from];
-        if(userData.tagType) data.bttvTagType = (["moderator","broadcaster","admin","global_mod","staff","bot"].indexOf(userData.tagType) !== -1) ? 'old'+userData.tagType : userData.tagType;
-        if(userData.tagName) data.bttvTagName = userData.tagName;
-        if(userData.color && data.style !== 'action') data.color = userData.color;
-        if(userData.nickname) data.bttvDisplayName = userData.nickname;
-        data.bttvTagDesc = "Grandfathered BetterTTV Swag Tag";
-    }
-
     var badges = helpers.getBadges(data.from);
     var bttvBadges = helpers.assignBadges(badges, data);
-
-    if(specialUsers[data.from]) {
-        var userData = specialUsers[data.from];
-        bttvBadges.push({
-            type: userData.tagType,
-            name: "&#8203;",
-            description: userData.dev ? 'NightDev Developer':'NightDev '+userData.team+' Team'
-        });
-    }
 
     data.sender = data.from;
 
@@ -341,6 +336,28 @@ var privmsg = exports.privmsg = function (channel, data) {
         data.from = data.bttvDisplayName;
     } else {
         data.from = helpers.lookupDisplayName(data.from);
+    }
+
+    // handle twitch whispers
+    if (data.style === 'whisper') {
+        var toColor = helpers.getColor(data.to);
+        toColor = helpers.calculateColor(toColor);
+
+        var message = templates.whisper({
+            message: data.message,
+            time: data.date == null ? '' : data.date.toLocaleTimeString().replace(/^(\d{0,2}):(\d{0,2}):(.*)$/i, '$1:$2'),
+            from: data.from,
+            sender: data.sender,
+            receiver: data.to,
+            to: helpers.lookupDisplayName(data.to),
+            fromColor: data.color,
+            toColor: toColor,
+            emotes: data.tags.emotes
+        });
+
+        $('.ember-chat .chat-messages .tse-content .chat-lines').append(message);
+        helpers.scrollChat();
+        return;
     }
 
     var message = templates.privmsg(

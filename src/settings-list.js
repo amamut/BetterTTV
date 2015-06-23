@@ -25,8 +25,8 @@ module.exports = [
         storageKey: 'adminStaffAlert'
     },
     {
-        name: 'Alpha Chat Tags',
-        description: 'Removes the background from chat tags',
+        name: 'Alpha Chat Badges',
+        description: 'Removes the background from chat badges',
         default: false,
         storageKey: 'alphaTags'
     },
@@ -38,7 +38,7 @@ module.exports = [
     },
     {
         name: 'BetterTTV Chat',
-        description: 'A tiny chat bar for personal messaging friends (BETA)',
+        description: 'A tiny chat bar for personal messaging friends',
         default: false,
         storageKey: 'bttvChat',
         toggle: function(value) {
@@ -60,7 +60,7 @@ module.exports = [
     },
     {
         name: 'Blue Buttons',
-        description: 'BetterTTV replaces Twitch\'s purple with blue by default',
+        description: 'Blue is better than purple, so we make it an option.',
         default: false,
         storageKey: 'showBlueButtons',
         toggle: function(value) {
@@ -191,10 +191,29 @@ module.exports = [
         }
     },*/
     {
+        name: 'Disable whispers',
+        description: 'Disables the twitch whisper functionalitiy, hiding any whispers you recieve',
+        default: false,
+        storageKey: 'disableWhispers'
+    },
+    {
         name: 'Embedded Polling',
         description: 'See polls posted by the broadcaster embedded right into chat',
         default: true,
         storageKey: 'embeddedPolling'
+    },
+    {
+        name: 'Emote Menu',
+        description: 'Get a more advanced emote menu for Twitch. (Made by Ryan Chatham)',
+        default: false,
+        storageKey: 'clickTwitchEmotes',
+        toggle: function(value) {
+            if(value === true) {
+                bttv.handleTwitchChatEmotesScript();
+            } else {
+                window.location.reload();
+            }
+        }
     },
     {
         name: 'Featured Channels',
@@ -230,14 +249,23 @@ module.exports = [
         }
     },
     {
-        name: 'JTV Chat Tags',
-        description: 'BetterTTV can replace the chat tags with the ones from JTV',
+        name: 'JTV Chat Badges',
+        description: 'BetterTTV can replace the chat badges with the ones from JTV',
         default: false,
         storageKey: 'showJTVTags'
     },
     {
+        name: 'JTV Monkey Emotes',
+        description: 'BetterTTV replaces the robot emoticons with the old JTV monkey faces',
+        default: true,
+        storageKey: 'showMonkeyEmotes',
+        toggle: function() {
+            window.location.reload();
+        }
+    },
+    {
         name: 'Mod Card Keybinds',
-        description: 'Enable keybinds when you click on a username: P(urge), T(imeout), B(an)',
+        description: 'Enable keybinds when you click on a username: P(urge), T(imeout), B(an), W(whisper)',
         default: false,
         storageKey: 'modcardsKeybinds'
     },
@@ -261,15 +289,6 @@ module.exports = [
         description: 'Completely removes timed out messages from view',
         default: false,
         storageKey: 'hideDeletedMessages'
-    },
-    {
-        name: 'Robot Emoticons',
-        description: 'BetterTTV replaces the robot emoticons with the old JTV monkey faces by default',
-        default: false,
-        storageKey: 'showDefaultEmotes',
-        toggle: function() {
-            window.location.reload();
-        }
     },
     {
         name: 'Show Deleted Messages',
@@ -303,19 +322,6 @@ module.exports = [
         storageKey: 'twitchCast',
         toggle: function(value) {
             channelReformat();
-        }
-    },
-    {
-        name: 'Twitch Chat Emotes',
-        description: 'Why remember emotes when you can "click-to-insert" them (by Ryan Chatham)',
-        default: false,
-        storageKey: 'clickTwitchEmotes',
-        toggle: function(value) {
-            if(value === true) {
-                bttv.handleTwitchChatEmotesScript();
-            } else {
-                window.location.reload();
-            }
         }
     },
     {
