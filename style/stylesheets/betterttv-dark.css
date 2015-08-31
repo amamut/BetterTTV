@@ -33,7 +33,7 @@ body {
     background: rgb(30, 30, 30) !important;
 }
 
-.ember-chat .chat-messages {
+#channel-prompt, .ember-chat .chat-messages {
     background: rgb(30, 30, 30) !important;
 }
 
@@ -253,6 +253,9 @@ body {
 .teespring-panel .progress-bar {
     max-width: 320px;
 }
+.teespring-panel .teespring-panel-reservations {
+    margin-top: -6px;
+}
 
 /* dashboard bookmarks darken */
 
@@ -267,13 +270,13 @@ body {
     background: #343434;
 }
 
-#ui-id-1.ui-autocomplete.ui-front.ui-menu.ui-widget.ui-widget-content.ui-corner-all {
+.ui-autocomplete {
     color: #3b3b3b;
     border: 1px solid rgba(0,0,0,0.2);
     background: #3b3b3b;
 }
 
-#ui-id-1.ui-autocomplete.ui-front.ui-menu.ui-widget.ui-widget-content.ui-corner-all .game.ui-menu-item a {
+.ui-autocomplete .game.ui-menu-item a {
     display: block;
     background-position: 20px center;
     color: #d3d3d3 !important;
@@ -364,7 +367,6 @@ body {
     opacity: .5;
     border: 1px solid;
     border-color: rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.55);
-    background-image: url(../icons/arrow_collapse.png) !important;
     box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 0px 1px;
     background-color: rgb(50, 50, 50);
     box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.05), 0px 1px 0px rgba(0, 0, 0, 0.15) inset;
@@ -533,7 +535,8 @@ body {
 
 #channel .channel-actions .button.drop:after,
 #channel_actions .button.drop:after,
-.profile-info .buttons .button.drop:after {
+.profile-info .buttons .button.drop:after,
+.notification-controls .toggle-notification-menu:before {
     border-top-color: #777;
     margin-right: 5px;
 }
@@ -571,6 +574,12 @@ body {
     -moz-box-shadow: inset 0 0px 0px rgba(0,0,0,0.1),inset 0 0 0px rgba(0,0,0,0.05),0 0px 0 rgba(255,255,255,0.65);
     -webkit-box-shadow: inset 0 0px 0px rgba(0,0,0,0.1),inset 0 0 0px rgba(0,0,0,0.05),0 0px 0 rgba(255,255,255,0.65);
     background: #3b3b3b;
+}
+
+/* follow button for the fifth time*/
+.notification-controls .toggle-notification-menu {
+    background-color: rgb(30,30,30);
+    color: #d3d3d3;
 }
 
 /* Ember Pages Dropmenu Fix */
@@ -629,10 +638,6 @@ body {
     box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.05), 0px 1px 0px rgba(0, 0, 0, 0.15) inset !important;
     color: rgb(170, 170, 170) !important;
     text-shadow: rgba(0, 0, 0, 0.5) 0px 1px 0px !important;
-}
-
-.follow-button.following .follow {
-
 }
 
 .follow-button.following .notify:before {
@@ -1041,17 +1046,6 @@ body {
     color: #fff;
 }
 
-#controls #control_buttons .emoticon-selector-container .emoticon-selector.not-subscribed #non-subscriber-message {
-    color: #D3D3D3;
-}
-
-#controls #control_buttons .emoticon-selector-container .emoticon-selector .emoticon-selector-inner, #controls #control_buttons .emoticon-selector-container .emoticon-selector .emoticon-selector-inner {
-    background: rgb(20, 20, 20) !important;
-    box-shadow: none;
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
-}
-
 /* New Messages Page */
 #main_col .messages #message_actions, #main_col .messages #reply_form, #main_col .messages #reply_message_form, #main_col .messages #send_message_form #top_buttons, #main_col .messages #send_message_form #bottom_buttons, #main_col .messages #reply_form #top_buttons, #main_col .messages #reply_form #top_buttons {
     background: #282828 !important;
@@ -1205,7 +1199,7 @@ body {
     color: white;
 }
 
-.ember-chat .chatters-view {
+.ember-chat .chatters-view, .ember-chat .chatters-view .chatters-container .chatters {
     background: rgb(30,30,30);
 }
 
@@ -1484,13 +1478,7 @@ table.simple_table th {
 #settings #followers_content .hdr {
     background: #171717;
 }
-.connect_items {
-    border-color: #343434;
-}
-.connect_items .connect_item {
-    background: #404040;
-    color: #cdcdcd;
-}
+
 .section ul li, .section .sub {
     border-color: #333;
 }
@@ -1500,17 +1488,31 @@ table.simple_table th {
 table.simple_table td {
     border-color: transparent transparent #333;
 }
-.connect-items .connect-item .connect-item-info {
+.connect_items {
+    border-color: #343434;
+}
+.connect_items .connect_item {
+    background: #404040;
+    color: #cdcdcd;
+}
+.connect_items .connect_item .connect-item-info {
     background: #343434;
 }
-
-/* darken text on connections page */
-#user_edit_form .connect_items .connect-item-desc {
-    color: #333;
+.connect_items .connect-item-info .status {
+    background-color: #111;
 }
-
-#user_edit_form .form_microcopy {
-    background: #212121;
+.connect_items .connect-item-desc {
+    color: #d3d3d3;
+}
+.connect_items .connect-item-details-legal {
+    border: none;
+    padding-right: 25px;
+}
+#developer label {
+    color: #d3d3d3;
+}
+.streams .stream .content .thumb .boxart, .videos .video .content .thumb .boxart {
+    border-color: #111;
 }
 
 /*~~~~~~~Caster's Page~~~~~~~~*/
@@ -1644,6 +1646,14 @@ table.simple_table td {
     color: #d3d3d3;
 }
 
+.upsell-banner {
+    background-color: #222;
+}
+
+.upsell-banner .message .title {
+    color: #999;
+}
+
 /* darken link list popup */
 #flyout .content {
     background-color: rgb(35,35,35);
@@ -1759,6 +1769,7 @@ table.simple_table td {
     background-color: rgb(50,50,50);
     border-top: 1px solid #000;
     border-bottom: 1px solid #000;
+    box-shadow: none;
 }
 .ember-chat .chat-header.all-rooms-header {
     background-color: rgb(50,50,50);
@@ -1899,11 +1910,6 @@ span#is-subscribed {
     fill: #D3D3D3 !important;
 }
 
-.ember-chat .chat-interface .emoticon-selector .subscribe-message {
-    padding: 5px;
-    margin: 0px;
-}
-
 .ember-chat .chat-interface .suggestions {
     background-color: #323232;
 }
@@ -2000,4 +2006,88 @@ span.subscribe-text {
 }
 .whatisthis .actions a {
     color: #999;
+}
+
+/* Twitch emote menu */
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box {
+    background-color: rgb(25,25,25);
+}
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box .emotes .emoticon-grid .emote-set {
+    border-color: #444;
+}
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box .tabs {
+    border-color: #444;
+    color: #d3d3d3;
+}
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box .tabs .tab.active {
+    border-color: #888;
+    color: #aaa;
+}
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box .tabs .tab:hover {
+    border-color: #888;
+}
+
+.ember-chat .chat-interface .emoticon-selector .emoticon-selector-box .channel-emotes .subscribe-message {
+    border-color: #444;
+    color: #aaa;
+    margin: 0px;
+    padding: 5px 15px;
+    background-color: rgb(25,25,25);
+}
+
+/* dark whispers (lenny face) */
+.chat-messages .chat-line.whisper {
+    background-color: #352645 !important; /* blue: #202236 */
+}
+.chat-messages .chat-line .svg-whisper-arrow {
+    fill: #D3D3D3;
+}
+
+/* channel state */
+#bttv-channel-state-contain svg path {
+    fill: #d3d3d3;
+}
+
+/* normalizes username colors in chat */
+.ember-chat .chat-room.no-name-colors .chat-messages .chat-line .from, .ember-chat .chat-room.no-name-colors .chat-messages .chat-line .to {
+    color: #d3d3d3 !important;
+}
+
+/* profile page fixes */
+.card .item textarea {
+    background-color: #111;
+    color: #d3d3d3;
+}
+
+.change-banner .banner-preview, .change-banner .sp-replacer {
+    border-color: #111;
+}
+
+.sp-replacer {
+    background-color: #101010;
+    color: #d3d3d3;
+}
+
+.sp-replacer:hover {
+    color: #d3d3d3;
+}
+
+/* new player darkening */
+.player .player-hover.player-controls-bottom .player-menu__menu {
+    background: rgb(35, 35, 35);
+    color: #d3d3d3;
+}
+
+.player .player-hover.player-controls-bottom .player-menu__menu:after {
+    border-top-color: rgb(35, 35, 35);
+}
+
+/* dark mod card */
+.bttv-mod-card .user-messages .label {
+    background-color: rgb(60,60,60);
 }

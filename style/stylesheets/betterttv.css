@@ -61,7 +61,7 @@ ul.tabs li.selected a {
 
 .ember-chat .chat-messages {
     top: 0px;
-    bottom: 115px;
+    bottom: 114px;
     background-color: #f2f2f2; /* hide group chat feature depends on having a background */
 }
 
@@ -113,6 +113,10 @@ input.text:focus,select:focus,textarea:focus {
     -webkit-box-shadow: 0 0 3px 1px #dad9d9;
     border: 1px solid #000;
     color: #000;
+}
+
+.ember-chat .chat-hidden-overlay {
+    left: 0px;
 }
 
 .chat_line a, .ember-chat .chat-line a {
@@ -197,29 +201,23 @@ input.text:focus,select:focus,textarea:focus {
 }
 
 .line .bttvDeveloper, .ember-chat .badges .bttvDeveloper {
-    background: url(../../tags/developer.png) no-repeat;
-    padding-left: 12px !important;
-    border-radius: 2px 2px 2px 2px;
-    padding: 2px 3px;
-    font-weight: bold;
-    font-size: 0.8572em;
-    color: white;
-    display: inline !important;
+    background: url("../../tags/badge-dev.svg");
+    background-size: 100%;
 }
 
+/* red badge on red highlight = :( */
 .ember-chat .chat-line.highlight .badges .bttvDeveloper {
-    filter: brightness(1.35);
+    filter: brightness(1.4);
 }
 
 .line .bttvSupporter, .ember-chat .badges .bttvSupporter {
-    background: url(../../tags/supporter.png) no-repeat;
-    padding-left: 12px !important;
-    border-radius: 2px 2px 2px 2px;
-    padding: 2px 3px;
-    font-weight: bold;
-    font-size: 0.8572em;
-    color: white;
-    display: inline !important;
+    background: url("../../tags/badge-support.svg");
+    background-size: 100%;
+}
+
+.line .bttvApprover, .ember-chat .badges .bttvApprover {
+    background: url("../../tags/badge-approver.svg");
+    background-size: 100%;
 }
 
 .line .brown, .ember-chat .badges .brown {
@@ -317,10 +315,6 @@ input.text:focus,select:focus,textarea:focus {
 
 #chat_line_list {
     padding-top: 0px !important;
-}
-
-.emoticon {
-    vertical-align: baseline !important;
 }
 
 #chat_line_list .highlight, .chat-messages .chat-line.highlight {
@@ -555,6 +549,86 @@ input.text:focus,select:focus,textarea:focus {
     margin-top: 5px;
 }
 
+.bttv-mod-card .interface {
+    width: 100% !important;
+    padding: 0px !important;
+}
+
+.bttv-mod-card .btn-wrapper {
+    padding: 10px;
+}
+
+.bttv-mod-card .name a {
+    max-width: 210px;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+}
+
+.bttv-mod-card .name .mod-card-edit {
+    margin-left: 3px;
+    margin-bottom: 6px;
+    padding-right: 15px;
+}
+
+.bttv-mod-card .user-messages {
+    padding-top: 10px;
+    width: 100%;
+    max-width: 320px;
+    float: left;
+}
+
+.bttv-mod-card .user-messages .label {
+    padding-top: 15px;
+    padding-left: 10px;
+    padding-bottom: 15px;
+    padding-right: 10px;
+    background-color: rgb(220,220,220);
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.bttv-mod-card .user-messages .label .triangle {
+    width: 0; 
+    height: 0; 
+    opacity: 0.5;
+    position: absolute;
+    right: 15px;
+    margin-top: -6px;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-left: 7px solid white;
+    transition: all 300ms ease-in;
+}
+
+.bttv-mod-card .user-messages .label .triangle.open {
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+
+.bttv-mod-card .user-messages .mod-icons {
+    display: none;
+}
+
+.bttv-mod-card .user-messages .bttv-user-locate .from {
+    box-shadow: none;
+}
+
+.bttv-mod-card .chat-messages {
+    display: none;
+    top: auto !important;
+    bottom: auto !important;
+    position: relative;
+    max-height: 100px;
+    width: 100% !important;
+    max-height: 100px !important;
+    overflow-y: auto;
+    box-shadow: 0px 2px 0px 0px #f00;
+}
+
 .bttv-switch {
   position: relative;
   float: right;
@@ -671,7 +745,7 @@ input.text:focus,select:focus,textarea:focus {
 }
 
 #dash_main .dash-broadcast-contain {
-    padding-bottom: 10px;
+    padding: 10px;
 }
 
 #dash_main .dash-player-contain {
@@ -715,7 +789,8 @@ input.text:focus,select:focus,textarea:focus {
 }
 
 .ember-chat .chat-interface .chat-buttons-container .send-chat-button {
-    width: 100px;
+    max-width: 180px;
+    min-width: 100px;
     float: right;
     left: auto;
     right: 0px;
@@ -724,6 +799,10 @@ input.text:focus,select:focus,textarea:focus {
     position: auto;
     color: #fff !important;
     margin-right: 0px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 input, textarea, select {
@@ -958,12 +1037,16 @@ body#chat #speak {
     position: absolute;
     top: 0px;
     left: 0px;
-    width: auto;
-    height: 72px;
+    width: 100%;
+    z-index: 0;
+    opacity: 0.5;
 }
 
 .ember-chat .moderation-card h3.name {
+    margin-top: -5px;
     font-size: 18px;
+    display: inline-block;
+    margin-bottom: -8px;
 }
 
 .ember-chat .moderation-card .svg-edit {
@@ -972,12 +1055,40 @@ body#chat #speak {
 }
 
 .ember-chat .moderation-card h4.real-name {
-    font-size: 11px;
+    font-size: 10px;
     color: #AAA;
-    margin-top: -2px;
+    z-index: 4;
+    position: relative;
+    margin-left: 60px;
+    margin-top: -10px;
+    margin-bottom: -2px;
+}
+
+.ember-chat .moderation-card h4.created-at {
+    font-size: 11px;
+    color: rgb(220,220,190);
     margin-left: 60px;
     position: relative;
+    display: table;
     z-index: 4;
+}
+
+.moderation-card div.channel-stats {
+    margin-left: 60px;
+    height: 20px;
+    line-height: 20px;
+    float: left;
+    opacity: 0.7;
+    position: relative;
+    margin-top: 3px;
+}
+
+.moderation-card .channel-stats .stat svg {
+    margin-top: 2px;
+}
+
+.moderation-card .channel-stats .stat {
+    color: white;
 }
 
 .ember-chat .moderation-card .button-simple {
@@ -1005,6 +1116,7 @@ body#chat #speak {
 }
 
 .ember-chat .moderation-card .interface {
+    position: relative;
     display: inline-block;
     width: 100%;
 }
@@ -1043,6 +1155,11 @@ body#chat #speak {
 
 #chat_emote_dropmenu_button.newlayout {
     margin-left: 3px !important;
+}
+
+/* Fix Group Chat Pane Height */
+.ember-chat .chat-room-list {
+    height: calc(100% - 60px);
 }
 
 /* Canvas Channel Backgrounds */
@@ -1133,6 +1250,12 @@ body#chat #speak {
 
 .ember-chat .chat-interface .chat-buttons-container .chat-option-buttons {
     margin-left: 8px;
+}
+
+/* more-messages-indicator is not full width */
+.ember-chat .chat-interface .more-messages-indicator {
+    left: 0px;
+    right: 0px;
 }
 
 .ember-chat .chat-header {
@@ -1290,6 +1413,7 @@ body.channel_new.columns.ember-application {
 
     overflow: hidden;
     display: none;
+    z-index: 99999;
 }
 
 #bttv-poll-contain .title {
@@ -1358,11 +1482,13 @@ body.channel_new.columns.ember-application {
 
 /* Emoticons */
 .emoticon {
+    vertical-align: baseline !important;
     display: inline-block;
+    padding-top: 5px;
 }
 
 /* tehMorag's emote */
-@keyframes "ttv-emo-6633" {
+@keyframes morag-spin {
     from {
         -webkit-transform: rotate(0);
         -moz-transform: rotate(0);
@@ -1377,10 +1503,10 @@ body.channel_new.columns.ember-application {
         -o-transform: rotate(360deg);
         -ms-transform: rotate(360deg);
         transform: rotate(360deg);
-    };
+    }
 }
 
-@-moz-keyframes "ttv-emo-6633" {
+@-moz-keyframes morag-spin {
     from {
         -moz-transform: rotate(0);
         transform: rotate(0);
@@ -1389,10 +1515,10 @@ body.channel_new.columns.ember-application {
     to {
         -moz-transform: rotate(360deg);
         transform: rotate(360deg);
-    };
+    }
 }
 
-@-webkit-keyframes "ttv-emo-6633" {
+@-webkit-keyframes morag-spin {
     from {
         -webkit-transform: rotate(0);
         transform: rotate(0);
@@ -1401,10 +1527,10 @@ body.channel_new.columns.ember-application {
     to {
         -webkit-transform: rotate(360deg);
         transform: rotate(360deg);
-    };
+    }
 }
 
-@-ms-keyframes "ttv-emo-6633" {
+@-ms-keyframes morag-spin {
     from {
         -ms-transform: rotate(0);
         transform: rotate(0);
@@ -1413,10 +1539,10 @@ body.channel_new.columns.ember-application {
     to {
         -ms-transform: rotate(360deg);
         transform: rotate(360deg);
-    };
+    }
 }
 
-@-o-keyframes "ttv-emo-6633" {
+@-o-keyframes morag-spin {
     from {
         -o-transform: rotate(0);
         transform: rotate(0);
@@ -1425,15 +1551,16 @@ body.channel_new.columns.ember-application {
     to {
         -o-transform: rotate(360deg);
         transform: rotate(360deg);
-    };
+    }
 }
 
 .ttv-emo-6633 {
-    -webkit-animation: ttv-emo-6633 1.5s linear infinite;
-    -moz-animation: ttv-emo-6633 1.5s linear infinite;
-    -ms-animation: ttv-emo-6633 1.5s linear infinite;
-    -o-animation: ttv-emo-6633 1.5s linear infinite;
-    animation: ttv-emo-6633 1.5s linear infinite;
+    padding-top: 0px;
+    -webkit-animation: morag-spin 1.5s linear infinite;
+    -moz-animation: morag-spin 1.5s linear infinite;
+    -ms-animation: morag-spin 1.5s linear infinite;
+    -o-animation: morag-spin 1.5s linear infinite;
+    animation: morag-spin 1.5s linear infinite;
 }
 
 /* Notification Container above chat */
@@ -1443,8 +1570,70 @@ body.channel_new.columns.ember-application {
 }
 
 /* mod card user locater */
-.chat-line.bttv-user-locate .from,
-.chat-line.bttv-user-locate .colon {
+.chat-line.bttv-user-locate .from {
     box-shadow: 0px 2px 0px 0px #f00;
 }
 
+/* dropmenu margin fix */
+.stats-and-actions .channel-actions .dropmenu,
+.chat-interface .dropmenu {
+    margin-bottom: 5px;
+}
+
+/* whispers */
+.chat-messages .chat-line.whisper {
+    background-color: #E8D6FF !important;
+}
+.chat-messages .chat-line .svg-whisper-arrow {
+    fill: #32323e;
+}
+
+/* small nav follow count */
+#bttv-small-nav-count {
+    position: absolute;
+    left: 30px;
+    margin-top: 20px;
+    color: #CFCFCF;
+    font-size: 10px;
+}
+
+/* channel state feature */
+#bttv-channel-state-contain {
+    position: absolute;
+    top: 12px;
+    right: 5px;
+    width: 150px;
+    height: 24px;
+}
+
+#bttv-channel-state-contain svg path {
+    fill: #222;
+}
+
+
+#bttv-channel-state-contain .slow,
+#bttv-channel-state-contain .subs-only,
+#bttv-channel-state-contain .r9k {
+    float: right;
+    width: 26px;
+    height: 22px;
+}
+
+#bttv-channel-state-contain .slow {
+    position: relative;
+    width: 70px;
+    text-align: right;
+}
+
+#bttv-channel-state-contain .slow .slow-time {
+    position: absolute;
+    top: 8px;
+    right: 24px;
+    font-size: 9px;
+    line-height: 9px;
+}
+
+/* normalizes username colors in chat */
+.ember-chat .chat-room.no-name-colors .chat-messages .chat-line .from, .ember-chat .chat-room.no-name-colors .chat-messages .chat-line .to {
+    color: #6441A5 !important;
+}

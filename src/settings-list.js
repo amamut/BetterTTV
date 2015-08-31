@@ -1,8 +1,3 @@
-/** BTTV :
- * cssBlueButtons
- * handleTwitchChatEmotesScript
- */
-
 var chat = bttv.chat, vars = bttv.vars;
 var betaChat = require('./features/beta-chat'),
     channelReformat = require('./features/channel-reformat'),
@@ -11,22 +6,36 @@ var betaChat = require('./features/beta-chat'),
     handleBackground = require('./features/handle-background'),
     flipDashboard = require('./features/flip-dashboard'),
     cssLoader = require('./features/css-loader'),
-    theatreMode = require('./features/auto-theatre-mode');
+    hostButton = require('./features/host-btn-below-video'),
+    anonChat = require('./features/anon-chat'),
+    handleTwitchChatEmotesScript = require('./features/handle-twitchchat-emotes');
 var displayElement = require('./helpers/element').display,
     removeElement = require('./helpers/element').remove,
     imagePreview = require('./features/image-preview');
 
 module.exports = [
-    {
+    /* {
         name: 'Admin/Staff Alert',
         description: 'Get alerted in chat when admins or staff join',
         default: false,
         hidden: true,
         storageKey: 'adminStaffAlert'
+    },*/
+    {
+        name: 'Anon Chat',
+        description: 'Join channels without appearing in chat',
+        default: false,
+        storageKey: 'anonChat',
+        toggle: function() {
+            anonChat();
+        },
+        load: function() {
+            anonChat();
+        }
     },
     {
-        name: 'Alpha Chat Tags',
-        description: 'Removes the background from chat tags',
+        name: 'Alpha Chat Badges',
+        description: 'Removes the background from chat badges',
         default: false,
         storageKey: 'alphaTags'
     },
@@ -38,11 +47,11 @@ module.exports = [
     },
     {
         name: 'BetterTTV Chat',
-        description: 'A tiny chat bar for personal messaging friends (BETA)',
+        description: 'A tiny chat bar for personal messaging friends (reloads page when turning off)',
         default: false,
         storageKey: 'bttvChat',
         toggle: function(value) {
-            if(value === true) {
+            if (value === true) {
                 betaChat();
             } else {
                 window.location.reload();
@@ -53,25 +62,28 @@ module.exports = [
         name: 'BetterTTV Emotes',
         description: 'BetterTTV adds extra cool emotes for you to use',
         default: true,
-        storageKey: 'bttvEmotes',
-        toggle: function() {
-            window.location.reload();
-        }
+        storageKey: 'bttvEmotes'
+    },
+    {
+        name: 'BetterTTV GIF Emotes',
+        description: 'We realize not everyone likes GIFs, but some people do.',
+        default: false,
+        storageKey: 'bttvGIFEmotes'
     },
     {
         name: 'Blue Buttons',
-        description: 'BetterTTV replaces Twitch\'s purple with blue by default',
+        description: 'Blue is better than purple, so we make it an option.',
         default: false,
         storageKey: 'showBlueButtons',
         toggle: function(value) {
-            if(value === true) {
-                cssLoader.load("blue-buttons", "showBlueButtons");
+            if (value === true) {
+                cssLoader.load('blue-buttons', 'showBlueButtons');
             } else {
-                cssLoader.unload("showBlueButtons");
+                cssLoader.unload('showBlueButtons');
             }
         },
         load: function() {
-            cssLoader.load("blue-buttons", "showBlueButtons");
+            cssLoader.load('blue-buttons', 'showBlueButtons');
         }
     },
     {
@@ -79,7 +91,7 @@ module.exports = [
         description: 'Preview chat images on mouse over',
         default: true,
         storageKey: 'chatImagePreview',
-        toggle: function (value) {
+        toggle: function(value) {
             if (value === true) {
                 imagePreview.enablePreview();
             } else {
@@ -93,17 +105,17 @@ module.exports = [
         default: false,
         storageKey: 'darkenedMode',
         toggle: function(value) {
-            if(value === true) {
+            if (value === true) {
                 darkenPage();
-                if (bttv.settings.get("splitChat") !== false) {
-                    $("#splitChat").remove();
+                if (bttv.settings.get('splitChat') !== false) {
+                    $('#splitChat').remove();
                     splitChat();
                 }
             } else {
-                $("#darkTwitch").remove();
+                $('#darkTwitch').remove();
                 handleBackground();
-                if (bttv.settings.get("splitChat") !== false) {
-                    $("#splitChat").remove();
+                if (bttv.settings.get('splitChat') !== false) {
+                    $('#splitChat').remove();
                     splitChat();
                 }
             }
@@ -111,18 +123,18 @@ module.exports = [
         load: function() {
             var currentDarkStatus = false;
 
-            if(!window.App || !App.__container__.lookup('controller:Layout')) return;
+            if (!window.App || !App.__container__.lookup('controller:Layout')) return;
             App.__container__.lookup('controller:Layout').addObserver('isTheatreMode', function() {
-                if(this.get('isTheatreMode') === true) {
-                    currentDarkStatus = bttv.settings.get("darkenedMode");
-                    if(currentDarkStatus === false) {
-                        bttv.settings.save("darkenedMode", true);
+                if (this.get('isTheatreMode') === true) {
+                    currentDarkStatus = bttv.settings.get('darkenedMode');
+                    if (currentDarkStatus === false) {
+                        bttv.settings.save('darkenedMode', true);
 
                         // Toggles setting back without removing the darkened css
                         bttv.storage.put('bttv_darkenedMode', false);
                     }
                 } else {
-                    if(currentDarkStatus === false) bttv.settings.save("darkenedMode", false);
+                    if (currentDarkStatus === false) bttv.settings.save('darkenedMode', false);
                 }
             });
         }
@@ -139,37 +151,37 @@ module.exports = [
         default: false,
         storageKey: 'desktopNotifications',
         toggle: function(value) {
-            if(value === true) {
-                if(window.Notification) {
+            if (value === true) {
+                if (window.Notification) {
                     if (Notification.permission === 'default' || (window.webkitNotifications && webkitNotifications.checkPermission() === 1)) {
-                        Notification.requestPermission(function () {
+                        Notification.requestPermission(function() {
                             if (Notification.permission === 'granted' || (window.webkitNotifications && webkitNotifications.checkPermission() === 0)) {
-                                bttv.settings.save("desktopNotifications", true);
-                                bttv.notify("Desktop notifications are now enabled.");
+                                bttv.settings.save('desktopNotifications', true);
+                                bttv.notify('Desktop notifications are now enabled.');
                             } else {
-                                bttv.notify("You denied BetterTTV permission to send you notifications.");
+                                bttv.notify('You denied BetterTTV permission to send you notifications.');
                             }
                         });
                     } else if (Notification.permission === 'granted' || (window.webkitNotifications && webkitNotifications.checkPermission() === 0)) {
-                        bttv.settings.save("desktopNotifications", true);
-                        bttv.notify("Desktop notifications are now enabled.");
+                        bttv.settings.save('desktopNotifications', true);
+                        bttv.notify('Desktop notifications are now enabled.');
                     } else if (Notification.permission === 'denied' || (window.webkitNotifications && webkitNotifications.checkPermission() === 2)) {
-                        Notification.requestPermission(function () {
+                        Notification.requestPermission(function() {
                             if (Notification.permission === 'granted' || (window.webkitNotifications && webkitNotifications.checkPermission() === 0)) {
-                                bttv.settings.save("desktopNotifications", true);
-                                bttv.notify("Desktop notifications are now enabled.");
+                                bttv.settings.save('desktopNotifications', true);
+                                bttv.notify('Desktop notifications are now enabled.');
                             } else {
-                                bttv.notify("You denied BetterTTV permission to send you notifications.");
+                                bttv.notify('You denied BetterTTV permission to send you notifications.');
                             }
                         });
                     } else {
-                        bttv.notify("Your browser is not capable of desktop notifications.");
+                        bttv.notify('Your browser is not capable of desktop notifications.');
                     }
                 } else {
-                    bttv.notify("Your browser is not capable of desktop notifications.");
+                    bttv.notify('Your browser is not capable of desktop notifications.');
                 }
             } else {
-                bttv.notify("Desktop notifications are now disabled.");
+                bttv.notify('Desktop notifications are now disabled.');
             }
         }
     },
@@ -179,16 +191,57 @@ module.exports = [
         default: true,
         storageKey: 'dblclickTranslation',
         toggle: function(value) {
-            if(value === true) {
+            if (value === true) {
                 $('body').on('dblclick', '.chat-line', function() {
-                    chat.helpers.translate($(this).find('.message'), $(this).data("sender"), $(this).find('.message').data("raw"));
-                    $(this).find('.message').text("Translating..");
+                    chat.helpers.translate($(this).find('.message'), $(this).data('sender'), $(this).find('.message').data('raw'));
+                    $(this).find('.message').text('Translating..');
                     $('div.tipsy').remove();
                 });
             } else {
-                $('body').unbind("dblclick");
+                $('body').unbind('dblclick');
             }
         }
+    },
+    {
+        name: 'Disable Host Mode',
+        description: 'Disables hosted channels on Twitch',
+        default: false,
+        storageKey: 'disableHostMode',
+        toggle: function(value) {
+            try {
+                window.App.set('enableHostMode', !value);
+            } catch(e) {}
+        },
+        load: function() {
+            try {
+                window.App.set('enableHostMode', !bttv.settings.get('disableHostMode'));
+            } catch(e) {}
+        }
+    },
+    {
+        name: 'Disable Name Colors',
+        description: 'Disables colors in chat (useful for those who may suffer from color blindness)',
+        default: false,
+        storageKey: 'disableUsernameColors',
+        toggle: function(value) {
+            if (value === true) {
+                $('.ember-chat .chat-room').addClass('no-name-colors');
+            } else {
+                $('.ember-chat .chat-room').removeClass('no-name-colors');
+            }
+        }
+    },
+    {
+        name: 'Disable Whispers',
+        description: 'Disables the Twitch whisper feature and hides any whispers you receive',
+        default: false,
+        storageKey: 'disableWhispers'
+    },
+    {
+        name: 'Double-Click Auto-Complete',
+        description: 'Double-clicking a username in chat copies it into the chat text box',
+        default: false,
+        storageKey: 'dblClickAutoComplete'
     },
     {
         name: 'Embedded Polling',
@@ -197,12 +250,26 @@ module.exports = [
         storageKey: 'embeddedPolling'
     },
     {
+        name: 'Emote Menu',
+        description: 'Get a more advanced emote menu for Twitch. (Made by Ryan Chatham)',
+        default: false,
+        storageKey: 'clickTwitchEmotes',
+        toggle: function(value) {
+            if (value === true) {
+                handleTwitchChatEmotesScript();
+            } else {
+                $('#emote-menu-button').remove();
+                $('#clickTwitchEmotes').remove();
+            }
+        }
+    },
+    {
         name: 'Featured Channels',
         description: 'The left sidebar is too cluttered, so BetterTTV removes featured channels by default',
         default: false,
         storageKey: 'showFeaturedChannels',
         toggle: function(value) {
-            if(value === true) {
+            if (value === true) {
                 displayElement('#nav_games');
                 displayElement('#nav_streams');
                 displayElement('#nav_related_streams');
@@ -214,30 +281,61 @@ module.exports = [
         }
     },
     {
+        name: 'Following Notifications',
+        description: 'BetterTTV will notify you when channels you follow go live',
+        default: true,
+        storageKey: 'followingNotifications'
+    },
+    {
         name: 'Hide Group Chat',
         description: 'Hides the group chat bar above chat',
         default: false,
         storageKey: 'groupChatRemoval',
         toggle: function(value) {
-            if(value === true) {
-                cssLoader.load("hide-group-chat", "groupChatRemoval");
+            if (value === true) {
+                cssLoader.load('hide-group-chat', 'groupChatRemoval');
             } else {
-                cssLoader.unload("groupChatRemoval");
+                cssLoader.unload('groupChatRemoval');
             }
         },
         load: function() {
-            cssLoader.load("hide-group-chat", "groupChatRemoval");
+            cssLoader.load('hide-group-chat', 'groupChatRemoval');
         }
     },
     {
-        name: 'JTV Chat Tags',
-        description: 'BetterTTV can replace the chat tags with the ones from JTV',
+        name: 'Hide Spam Messages',
+        description: 'Hides known spam messages. Click on the message to reveal it',
+        default: true,
+        storageKey: 'hideSpam'
+    },
+    {
+        name: 'Host Button',
+        description: 'Places a Host/Unhost button below the video player',
+        default: false,
+        storageKey: 'hostButton',
+        toggle: function(value) {
+            if (value === true) {
+                hostButton();
+            } else {
+                $('#bttv-host-button').remove();
+            }
+        }
+    },
+    {
+        name: 'JTV Chat Badges',
+        description: 'BetterTTV can replace the chat badges with the ones from JTV',
         default: false,
         storageKey: 'showJTVTags'
     },
     {
+        name: 'JTV Monkey Emotes',
+        description: 'BetterTTV replaces the robot emoticons with the old JTV monkey faces',
+        default: false,
+        storageKey: 'showMonkeyEmotes'
+    },
+    {
         name: 'Mod Card Keybinds',
-        description: 'Enable keybinds when you click on a username: P(urge), T(imeout), B(an)',
+        description: 'Enable keybinds when you click on a username: P(urge), T(imeout), B(an), W(whisper)',
         default: false,
         storageKey: 'modcardsKeybinds'
     },
@@ -245,14 +343,11 @@ module.exports = [
         name: 'Other Messages Alert',
         description: 'BetterTTV can alert you when you receive a message to your "Other" messages folder',
         default: false,
-        storageKey: 'alertOtherMessages',
-        toggle: function() {
-            window.location.reload();
-        }
+        storageKey: 'alertOtherMessages'
     },
     {
-        name: 'Play Sound on Highlight',
-        description: 'Get audio feedback when any message is highlighted (BETA)',
+        name: 'Play Sound on Highlight/Whisper',
+        description: 'Get audio feedback for messages directed at you (BETA)',
         default: false,
         storageKey: 'highlightFeedback'
     },
@@ -263,15 +358,6 @@ module.exports = [
         storageKey: 'hideDeletedMessages'
     },
     {
-        name: 'Robot Emoticons',
-        description: 'BetterTTV replaces the robot emoticons with the old JTV monkey faces by default',
-        default: false,
-        storageKey: 'showDefaultEmotes',
-        toggle: function() {
-            window.location.reload();
-        }
-    },
-    {
         name: 'Show Deleted Messages',
         description: 'Turn this on to change <message deleted> back to users\' messages.',
         default: false,
@@ -280,20 +366,20 @@ module.exports = [
     {
         name: 'Split Chat',
         description: 'Easily distinguish between messages from different users in chat',
-        default: true,
+        default: false,
         storageKey: 'splitChat',
         toggle: function(value) {
-            if(value === true) {
+            if (value === true) {
                 splitChat();
             } else {
-                $("#splitChat").remove();
+                $('#splitChat').remove();
             }
         }
     },
     {
-        name: 'Tab completion tooltip',
+        name: 'Tab Completion Tooltip',
         description: 'Shows a tooltip with suggested names when using tab completion',
-        default: true,
+        default: false,
         storageKey: 'tabCompletionTooltip'
     },
     {
@@ -301,21 +387,8 @@ module.exports = [
         description: 'Watch a Twitch stream via Chromecast (Google Chrome only)',
         default: false,
         storageKey: 'twitchCast',
-        toggle: function(value) {
+        toggle: function() {
             channelReformat();
-        }
-    },
-    {
-        name: 'Twitch Chat Emotes',
-        description: 'Why remember emotes when you can "click-to-insert" them (by Ryan Chatham)',
-        default: false,
-        storageKey: 'clickTwitchEmotes',
-        toggle: function(value) {
-            if(value === true) {
-                bttv.handleTwitchChatEmotesScript();
-            } else {
-                window.location.reload();
-            }
         }
     },
     {
@@ -323,29 +396,30 @@ module.exports = [
         storageKey: 'blacklistKeywords',
         toggle: function(keywords) {
             var phraseRegex = /\{.+?\}/g;
-            var testCases =  keywords.match(phraseRegex);
+            var testCases = keywords.match(phraseRegex);
             var phraseKeywords = [];
-            if(testCases) {
-                for (i=0;i<testCases.length;i++) {
+            var i;
+            if (testCases) {
+                for (i = 0; i < testCases.length; i++) {
                     var testCase = testCases[i];
-                    keywords = keywords.replace(testCase, "").replace(/\s\s+/g, ' ').trim();
-                    phraseKeywords.push('"'+testCase.replace(/(^\{|\}$)/g, '').trim()+'"');
+                    keywords = keywords.replace(testCase, '').replace(/\s\s+/g, ' ').trim();
+                    phraseKeywords.push('"' + testCase.replace(/(^\{|\}$)/g, '').trim() + '"');
                 }
             }
 
-            keywords === "" ? keywords = phraseKeywords : keywords = keywords.split(" ").concat(phraseKeywords);
+            keywords === '' ? keywords = phraseKeywords : keywords = keywords.split(' ').concat(phraseKeywords);
 
-            for(var i=0; i<keywords.length; i++) {
-                if(/^\([a-z0-9_\-\*]+\)$/i.test(keywords[i])) {
+            for (i = 0; i < keywords.length; i++) {
+                if (/^\([a-z0-9_\-\*]+\)$/i.test(keywords[i])) {
                     keywords[i] = keywords[i].replace(/(\(|\))/g, '');
                 }
             }
 
-            var keywordList = keywords.join(", ");
-            if(keywordList === "") {
-                chat.helpers.serverMessage("Blacklist Keywords list is empty", true);
+            var keywordList = keywords.join(', ');
+            if (keywordList === '') {
+                chat.helpers.serverMessage('Blacklist Keywords list is empty', true);
             } else {
-                chat.helpers.serverMessage("Blacklist Keywords are now set to: " + keywordList, true);
+                chat.helpers.serverMessage('Blacklist Keywords are now set to: ' + keywordList, true);
             }
         }
     },
@@ -353,10 +427,10 @@ module.exports = [
         default: true,
         storageKey: 'chatLineHistory',
         toggle: function(value) {
-            if(value === true) {
-                chat.helpers.serverMessage("Chat line history enabled.", true);
+            if (value === true) {
+                chat.helpers.serverMessage('Chat line history enabled.', true);
             } else {
-                chat.helpers.serverMessage("Chat line history disabled.", true);
+                chat.helpers.serverMessage('Chat line history disabled.', true);
             }
         }
     },
@@ -372,11 +446,11 @@ module.exports = [
         default: false,
         storageKey: 'flipDashboard',
         toggle: function(value) {
-            if(value === true) {
-                $("#flipDashboard").text("Unflip Dashboard");
+            if (value === true) {
+                $('#flipDashboard').text('Unflip Dashboard');
                 flipDashboard();
             } else {
-                $("#flipDashboard").text("Flip Dashboard");
+                $('#flipDashboard').text('Flip Dashboard');
                 flipDashboard();
             }
         }
@@ -386,30 +460,30 @@ module.exports = [
         storageKey: 'highlightKeywords',
         toggle: function(keywords) {
             var phraseRegex = /\{.+?\}/g;
-            var testCases =  keywords.match(phraseRegex);
+            var testCases = keywords.match(phraseRegex);
             var phraseKeywords = [];
 
-            if(testCases) {
-                for (i=0;i<testCases.length;i++) {
+            if (testCases) {
+                for (var i = 0; i < testCases.length; i++) {
                     var testCase = testCases[i];
-                    keywords = keywords.replace(testCase, "").replace(/\s\s+/g, ' ').trim();
-                    phraseKeywords.push('"'+testCase.replace(/(^\{|\}$)/g, '').trim()+'"');
+                    keywords = keywords.replace(testCase, '').replace(/\s\s+/g, ' ').trim();
+                    phraseKeywords.push('"' + testCase.replace(/(^\{|\}$)/g, '').trim() + '"');
                 }
             }
 
-            keywords === "" ? keywords = phraseKeywords : keywords = keywords.split(" ").concat(phraseKeywords);
+            keywords === '' ? keywords = phraseKeywords : keywords = keywords.split(' ').concat(phraseKeywords);
 
-            for(var i=0; i<keywords.length; i++) {
-                if(/^\([a-z0-9_\-\*]+\)$/i.test(keywords[i])) {
-                    keywords[i] = keywords[i].replace(/(\(|\))/g, '');
+            for (var j = 0; j < keywords.length; j++) {
+                if (/^\([a-z0-9_\-\*]+\)$/i.test(keywords[j])) {
+                    keywords[j] = keywords[j].replace(/(\(|\))/g, '');
                 }
             }
 
-            var keywordList = keywords.join(", ");
-            if(keywordList === "") {
-                chat.helpers.serverMessage("Highlight Keywords list is empty", true);
+            var keywordList = keywords.join(', ');
+            if (keywordList === '') {
+                chat.helpers.serverMessage('Highlight Keywords list is empty', true);
             } else {
-                chat.helpers.serverMessage("Highlight Keywords are now set to: " + keywordList, true);
+                chat.helpers.serverMessage('Highlight Keywords are now set to: ' + keywordList, true);
             }
         }
     },
@@ -417,10 +491,10 @@ module.exports = [
         default: 150,
         storageKey: 'scrollbackAmount',
         toggle: function(lines) {
-            if(lines === 150) {
-                chat.helpers.serverMessage("Chat scrollback is now set to: default (150)", true);
+            if (lines === 150) {
+                chat.helpers.serverMessage('Chat scrollback is now set to: default (150)', true);
             } else {
-                chat.helpers.serverMessage("Chat scrollback is now set to: " + lines, true);
+                chat.helpers.serverMessage('Chat scrollback is now set to: ' + lines, true);
             }
         }
     }
