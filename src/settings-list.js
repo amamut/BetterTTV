@@ -1,6 +1,5 @@
 var chat = bttv.chat, vars = bttv.vars;
 var betaChat = require('./features/beta-chat'),
-    channelReformat = require('./features/channel-reformat'),
     splitChat = require('./features/split-chat'),
     darkenPage = require('./features/darken-page'),
     handleBackground = require('./features/handle-background'),
@@ -188,7 +187,7 @@ module.exports = [
     {
         name: 'Double-Click Translation',
         description: 'Double-clicking on chat lines translates them with Google Translate',
-        default: true,
+        default: false,
         storageKey: 'dblclickTranslation',
         toggle: function(value) {
             if (value === true) {
@@ -346,6 +345,17 @@ module.exports = [
         storageKey: 'alertOtherMessages'
     },
     {
+        name: 'Pin Highlighted Messages',
+        description: 'Pin your ten latest highlighted messages right above chat',
+        default: false,
+        storageKey: 'pinnedHighlights',
+        toggle: function(value) {
+            if (value === false) {
+                $('#bttv-pin-container').remove();
+            }
+        }
+    },
+    {
         name: 'Play Sound on Highlight/Whisper',
         description: 'Get audio feedback for messages directed at you (BETA)',
         default: false,
@@ -356,6 +366,12 @@ module.exports = [
         description: 'Completely removes timed out messages from view',
         default: false,
         storageKey: 'hideDeletedMessages'
+    },
+    {
+        name: 'Shift-Click Custom Timeouts',
+        description: 'Requires shift + click to activate the custom timeout selector',
+        default: false,
+        storageKey: 'customTOShiftOnly'
     },
     {
         name: 'Show Deleted Messages',
@@ -381,15 +397,6 @@ module.exports = [
         description: 'Shows a tooltip with suggested names when using tab completion',
         default: false,
         storageKey: 'tabCompletionTooltip'
-    },
-    {
-        name: 'TwitchCast',
-        description: 'Watch a Twitch stream via Chromecast (Google Chrome only)',
-        default: false,
-        storageKey: 'twitchCast',
-        toggle: function() {
-            channelReformat();
-        }
     },
     {
         default: '',
@@ -456,7 +463,7 @@ module.exports = [
         }
     },
     {
-        default: (vars.userData.isLoggedIn ? vars.userData.login : ''),
+        default: (vars.userData.isLoggedIn ? vars.userData.name : ''),
         storageKey: 'highlightKeywords',
         toggle: function(keywords) {
             var phraseRegex = /\{.+?\}/g;

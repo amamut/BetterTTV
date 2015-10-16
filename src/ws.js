@@ -8,7 +8,13 @@ events.alert = function(data) {
     if (data.type === 'chat') {
         bttv.chat.helpers.serverMessage(data.message);
     } else if (data.type === 'growl') {
-        bttv.notify(data.message.text, data.message.title, data.message.url, data.message.image, data.message.tag, data.message.permanent);
+        bttv.notify(data.message.text, {
+            title: data.message.title,
+            url: data.message.url,
+            image: data.message.image,
+            tag: data.message.tag,
+            permanent: data.message.permanent
+        });
     }
 };
 
@@ -29,7 +35,7 @@ events.new_spammer = function(data) {
 // Nightbot emits commercial warnings to mods
 events.commercial = function(data) {
     if (data.channel !== bttv.getChannel()) return;
-    if (!vars.userData.isLoggedIn || !bttv.chat.helpers.isModerator(vars.userData.login)) return;
+    if (!vars.userData.isLoggedIn || !bttv.chat.helpers.isModerator(vars.userData.name)) return;
 
     bttv.chat.helpers.notifyMessage('bot', data.message);
 };
@@ -139,7 +145,7 @@ SocketClient.prototype.emit = function(evt, data) {
 SocketClient.prototype.broadcastMe = function() {
     if (!this._connected || !vars.userData.isLoggedIn) return;
 
-    this.emit('broadcast_me', { name: vars.userData.login, channel: bttv.getChannel() });
+    this.emit('broadcast_me', { name: vars.userData.name, channel: bttv.getChannel() });
 };
 
 SocketClient.prototype.joinChannel = function() {

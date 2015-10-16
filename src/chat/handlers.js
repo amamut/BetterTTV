@@ -5,6 +5,7 @@ var vars = require('../vars'),
     helpers = require('./helpers'),
     templates = require('./templates'),
     rooms = require('./rooms'),
+    pinnedHighlights = require('../features/pinned-highlights'),
     embeddedPolling = require('../features/embedded-polling'),
     channelState = require('../features/channel-state'),
     audibleFeedback = require('../features/audible-feedback');
@@ -144,6 +145,13 @@ exports.shiftQueue = function() {
         store.__messageQueue = [];
         rooms.getRoom(id).playQueue();
         helpers.serverMessage('You switched to: ' + tmi().get('name').replace(/</g, '&lt;').replace(/>/g, '&gt;'), true);
+
+        // TODO: this should not have to be here
+        if (tmi().tmiRoom.isGroupRoom) {
+            $('#bttv-channel-state-contain').hide();
+        } else {
+            $('#bttv-channel-state-contain').show();
+        }
     } else {
         if (store.__messageQueue.length === 0) return;
         $('.ember-chat .chat-messages .tse-content .chat-lines').append(store.__messageQueue.join(''));
@@ -155,7 +163,7 @@ exports.shiftQueue = function() {
 exports.moderationCard = function(user, $event) {
     var makeCard = require('../features/make-card');
 
-    bttv.TwitchAPI.get('/api/channels/' + user.toLowerCase() + '/ember').done(function(userApi) {
+    bttv.TwitchAPI.get('channels/' + user.toLowerCase(), {}, { version: 3 }).done(function(userApi) {
         if (!userApi.name) {
             makeCard({ name: userApi, display_name: userApi.capitalize() }, $event);
             return;
@@ -282,7 +290,7 @@ var privmsg = exports.privmsg = function(channel, data) {
             false,
             data.style === 'action' ? true : false,
             data.style === 'admin' ? true : false,
-            vars.userData.isLoggedIn ? helpers.isModerator(vars.userData.login) : false,
+            vars.userData.isLoggedIn ? helpers.isModerator(vars.userData.name) : false,
             {
                 message: data.message,
                 time: data.date === null ? '' : data.date.toLocaleTimeString().replace(/^(\d{0,2}):(\d{0,2}):(.*)$/i, '$1:$2'),
@@ -314,6 +322,11 @@ var privmsg = exports.privmsg = function(channel, data) {
     }
 
     var messageHighlighted = bttv.settings.get('highlightKeywords') && highlighting(data);
+
+	// Pinned Highlights
+    if (messageHighlighted) {
+        pinnedHighlights(data);
+    }
 
     // Strawpoll
     embeddedPolling(data);
@@ -373,7 +386,7 @@ var privmsg = exports.privmsg = function(channel, data) {
         messageHighlighted,
         data.style === 'action' ? true : false,
         data.style === 'admin' ? true : false,
-        vars.userData.isLoggedIn ? (helpers.isModerator(vars.userData.login) && (!helpers.isModerator(sender) || (vars.userData.login === channel && vars.userData.login !== sender))) : false,
+        vars.userData.isLoggedIn ? (helpers.isModerator(vars.userData.name) && (!helpers.isModerator(sender) || (vars.userData.name === channel && vars.userData.name !== sender))) : false,
         {
             message: data.message,
             time: data.date.toLocaleTimeString().replace(/^(\d{0,2}):(\d{0,2}):(.*)$/i, '$1:$2'),
@@ -399,7 +412,7 @@ exports.onPrivmsg = function(channel, data) {
         if (data.style === 'whisper') {
             store.chatters[data.from] = {lastWhisper: Date.now()};
             if (bttv.settings.get('disableWhispers') === true) return;
-            if (data.from !== vars.userData.login) {
+            if (data.from !== vars.userData.name) {
                 audibleFeedback();
                 if (bttv.settings.get('desktopNotifications') === true && bttv.chat.store.activeView === false) bttv.notify('You received a whisper from ' + ((data.tags && data.tags['display-name']) || data.from));
             }
